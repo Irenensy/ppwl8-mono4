@@ -95,9 +95,8 @@ const app = new Elysia()
       return { error: "Missing authorization code" };
     }
 
-    const oauth2Client = createOAuthClient();
     const { tokens } = await oauth2Client.getToken(code);
-
+    return redirect(`${process.env.FRONTEND_URL}/classroom?sessionId=${sessionId}`);
     const sessionId = crypto.randomUUID();
 
     tokenStore.set(sessionId, {
