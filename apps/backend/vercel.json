@@ -5,6 +5,17 @@
   "framework": "elysia",
   "installCommand": "bun install",
   "buildCommand": "echo 'No build step needed'",
-  "devCommand": "bun run dev"
+  "devCommand": "bun run dev",
+  "functions": {
+    "src/index.ts": {
+      "runtime": "vercel-bun@1.1.0"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "src/index.ts"
+    }
+  ]
   
 }
