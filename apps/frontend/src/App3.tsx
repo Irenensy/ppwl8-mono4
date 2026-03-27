@@ -215,15 +215,26 @@ export default function App() {
   // 2. Cek status login
   useEffect(() => {
     const sId = getSessionId();
+    if (sId) {
+      setLoggedIn(true);
+    }
     const url = sId 
       ? `${import.meta.env.VITE_BACKEND_URL}/auth/me?sessionId=${sId}`
       : `${import.meta.env.VITE_BACKEND_URL}/auth/me`;
 
     fetch(url, { credentials: "include" })
       .then((r) => r.json())
-      .then((d) => setLoggedIn(d.loggedIn))
-      .catch(() => setLoggedIn(false))
-  }, [])
+      .then((d) =>{
+        if (d.loggedIn || sId) {
+          setLoggedIn(true);
+        } else {
+          setLoggedIn(false);
+        }
+      })
+      .catch(() =>{
+        setLoggedIn(!!sId); 
+      });
+  }, []);
 
   // 3. Load daftar courses
   useEffect(() => {
