@@ -143,7 +143,7 @@ const app = new Elysia()
   })
 
   // ===== CLASSROOM =====
-  .get("/classroom/courses", async ({ cookie: { session }, set }) => {
+  .get("/classroom/courses", async ({ query, cookie: { session }, set }) => {
     const sessionId = (query.sessionId as string) || (session?.value as string);
     const tokens = sessionId ? tokenStore.get(sessionId) : null;
 
@@ -158,7 +158,7 @@ const app = new Elysia()
 
   .get(
     "/classroom/courses/:courseId/submissions",
-    async ({ params, cookie: { session }, set }) => {
+    async ({ params, query, cookie: { session }, set }) => {
       const sessionId = (query.sessionId as string) || (session?.value as string);
       const tokens = sessionId ? tokenStore.get(sessionId) : null;
 
