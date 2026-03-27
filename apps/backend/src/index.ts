@@ -4,8 +4,8 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import { cookie } from "@elysiajs/cookie";
 import { prisma } from "../prisma/db.js";
-import { createOAuthClient, getAuthUrl } from "./auth";
-import { getCourses, getCourseWorks, getSubmissions } from "./classroom";
+import { createOAuthClient, getAuthUrl } from "./auth.js";
+import { getCourses, getCourseWorks, getSubmissions } from "./classroom.js";
 import type { ApiResponse, HealthCheck, User } from "shared";
 
 import fs from "fs";
