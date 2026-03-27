@@ -94,11 +94,12 @@ const app = new Elysia()
       set.status = 400;
       return { error: "Missing authorization code" };
     }
+    const oauth2Client = createOAuthClient();
 
     const { tokens } = await oauth2Client.getToken(code);
-    return redirect(`${process.env.FRONTEND_URL}/classroom?sessionId=${sessionId}`);
     const sessionId = crypto.randomUUID();
 
+    // 4. Simpan(tokenStore)
     tokenStore.set(sessionId, {
       access_token: tokens.access_token!,
       refresh_token: tokens.refresh_token ?? undefined,
@@ -106,6 +107,7 @@ const app = new Elysia()
 
     if (!session) return;
 
+    // 5. Setting Cookie
     session.value = sessionId;
     session.path = "/";
     session.httpOnly = true;
@@ -113,9 +115,10 @@ const app = new Elysia()
     session.sameSite = "lax";
     session.secure = process.env.NODE_ENV === "production";
 
-    return redirect(`${process.env.FRONTEND_URL}/classroom`);
+    // 6. Redirect ke Frontend dengan membawa sessionId di URL
+    return redirect(`${process.env.FRONTEND_URL}/classroom?sessionId=${sessionId}`);
   })
-
+  
   .get("/auth/me", ({ cookie: { session } }) => {
     const sessionId = session?.value as string;
 
