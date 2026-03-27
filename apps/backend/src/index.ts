@@ -118,7 +118,7 @@ const app = new Elysia()
     // 6. Redirect ke Frontend dengan membawa sessionId di URL
     return redirect(`${process.env.FRONTEND_URL}/classroom?sessionId=${sessionId}`);
   })
-  
+
   .get("/auth/me", ({ cookie: { session } }) => {
     const sessionId = session?.value as string;
 
@@ -144,7 +144,7 @@ const app = new Elysia()
 
   // ===== CLASSROOM =====
   .get("/classroom/courses", async ({ cookie: { session }, set }) => {
-    const sessionId = session?.value as string;
+    const sessionId = (query.sessionId as string) || (session?.value as string);
     const tokens = sessionId ? tokenStore.get(sessionId) : null;
 
     if (!tokens) {
@@ -153,14 +153,13 @@ const app = new Elysia()
     }
 
     const courses = await getCourses(tokens.access_token);
-
     return { data: courses, message: "Courses retrieved" };
   })
 
   .get(
     "/classroom/courses/:courseId/submissions",
     async ({ params, cookie: { session }, set }) => {
-      const sessionId = session?.value as string;
+      const sessionId = (query.sessionId as string) || (session?.value as string);
       const tokens = sessionId ? tokenStore.get(sessionId) : null;
 
       if (!tokens) {
