@@ -4,7 +4,7 @@
   "bunVersion": "1.x",
   "framework": "elysia",
   "installCommand": "bun install",
-  "buildCommand": "bun install",
-  "outputDirectory": "dist"
+  "buildCommand": "echo 'No build step needed'",
+  "devCommand": "bun run dev"
   
 }
