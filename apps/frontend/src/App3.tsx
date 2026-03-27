@@ -218,21 +218,17 @@ export default function App() {
     if (sId) {
       setLoggedIn(true);
     }
-    const url = sId 
-      ? `${import.meta.env.VITE_BACKEND_URL}/auth/me?sessionId=${sId}`
-      : `${import.meta.env.VITE_BACKEND_URL}/auth/me`;
+    const url = `${import.meta.env.VITE_BACKEND_URL}/auth/me` + (sId ? `?sessionId=${sId}` : "");
 
     fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((d) =>{
         if (d.loggedIn || sId) {
-          setLoggedIn(true);
-        } else {
           setLoggedIn(false);
         }
       })
       .catch(() =>{
-        setLoggedIn(!!sId); 
+       if (!sId) setLoggedIn(false);
       });
   }, []);
 

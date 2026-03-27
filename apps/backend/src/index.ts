@@ -30,11 +30,21 @@ const isBrowserRequest = (request: Request): boolean => {
 const app = new Elysia()
   .use(
     cors({
-      origin: [
-        process.env.FRONTEND_URL ?? "",
-        process.env.TEST_URL ?? "",
-      ],
+      origin: (request) => {
+        const origin = request.headers.get('origin');
+        const allowedOrigins = [
+          process.env.FRONTEND_URL,
+          process.env.TEST_URL,
+          'http://localhost:5173' // Tambahkan lokal untuk jaga-jaga
+        ].filter(Boolean); // Menghapus nilai null/undefined
+        
+        // Izinkan jika origin ada di daftar
+        if (origin && allowedOrigins.includes(origin)) return true;
+        return false;
+      },
       credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     })
   )
   .use(swagger())
