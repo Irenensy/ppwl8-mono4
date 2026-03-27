@@ -197,30 +197,54 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Cek status login
+  // 1. Fungsi Helper untuk mendapatkan sessionId
+  const getSessionId = () => {
+    // Cek di URL dulu
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromUrl = urlParams.get('sessionId');
+    if (fromUrl) {
+      localStorage.setItem('sessionId', fromUrl); // Simpan biar awet
+      // Bersihkan URL tanpa reload
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return fromUrl;
+    }
+    // Kalau ga ada di URL, ambil dari penyimpanan lokal
+    return localStorage.getItem('sessionId');
+  }
+
+  // 2. Cek status login
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/me`, { credentials: "include" })
+    const sId = getSessionId();
+    const url = sId 
+      ? `${import.meta.env.VITE_BACKEND_URL}/auth/me?sessionId=${sId}`
+      : `${import.meta.env.VITE_BACKEND_URL}/auth/me`;
+
+    fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setLoggedIn(d.loggedIn))
       .catch(() => setLoggedIn(false))
   }, [])
 
-  // Load daftar courses setelah login
+  // 3. Load daftar courses
   useEffect(() => {
     if (!loggedIn) return
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/classroom/courses`, { credentials: "include" })
+    const sId = getSessionId();
+    
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/classroom/courses?sessionId=${sId}`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setCourses(d.data ?? []))
+      .catch((err) => setError("Gagal mengambil mata kuliah"))
   }, [loggedIn])
 
-  // Load submissions ketika course dipilih
+  // 4. Load submissions
   const loadSubmissions = async (courseId: string) => {
+    const sId = getSessionId();
     setSelectedCourse(courseId)
     setLoading(true)
     setError(null)
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/classroom/courses/${courseId}/submissions`,
+        `${import.meta.env.VITE_BACKEND_URL}/classroom/courses/${courseId}/submissions?sessionId=${sId}`,
         { credentials: "include" }
       )
       const d = await res.json()
@@ -239,6 +263,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, { method: "POST", credentials: "include" })
+    localStorage.removeItem('sessionId'); // Hapus session
     setLoggedIn(false)
     setCourses([])
     setItems([])
