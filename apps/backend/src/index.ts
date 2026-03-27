@@ -46,6 +46,8 @@ const app = new Elysia()
     const url = new URL(request.url);
 
     if (origin && origin === frontendUrl) return;
+    
+    if (url.pathname.startsWith("/swagger")) return;
 
     // Allow auth routes
     if (url.pathname.startsWith("/auth")) return;
