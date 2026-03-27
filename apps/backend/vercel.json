@@ -1,21 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "bunVersion": "1.x",
-  "framework": "elysia",
   "installCommand": "bun install",
-  "buildCommand": "echo 'No build step needed'",
+  "buildCommand": "echo 'No build'",
   "devCommand": "bun run dev",
-  "functions": {
-    "src/index.ts": {
-      "runtime": "vercel-bun@1.1.0"
+  "builds": [
+    {
+      "src": "src/index.ts",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "src/index.ts"
     }
   ]
-  
 }
