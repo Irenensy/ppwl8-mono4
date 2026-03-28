@@ -30,21 +30,14 @@ const isBrowserRequest = (request: Request): boolean => {
 const app = new Elysia()
   .use(
     cors({
-      origin: (request) => {
-        const origin = request.headers.get('origin');
-        const allowedOrigins = [
-          process.env.FRONTEND_URL,
-          process.env.TEST_URL,
-          'http://localhost:5173' // Tambahkan lokal untuk jaga-jaga
-        ].filter(Boolean); // Menghapus nilai null/undefined
-        
-        // Izinkan jika origin ada di daftar
-        if (origin && allowedOrigins.includes(origin)) return true;
-        return false;
-      },
+      origin: [
+        process.env.FRONTEND_URL ?? "",
+        process.env.TEST_URL ?? "",
+        "http://localhost:5173"
+      ],
       credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+      allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     })
   )
   .use(swagger())
@@ -55,6 +48,7 @@ const app = new Elysia()
     const frontendUrl = process.env.FRONTEND_URL ?? "";
     const url = new URL(request.url);
 
+    // 1. Izinkan jika datang dari Frontend resmi
     if (origin && origin === frontendUrl) return;
     
     if (url.pathname.startsWith("/swagger")) return;
@@ -62,7 +56,8 @@ const app = new Elysia()
     // Allow auth routes
     if (url.pathname.startsWith("/auth")) return;
 
-    if (isBrowserRequest(request)) {
+    // 2. Jika tidak dari Frontend, WAJIB cek API_KEY
+    if (isBrowserRequest(request) || url.pathname.startsWith("/users")) {
       const key = url.searchParams.get("key");
 
       if (!key || key !== process.env.API_KEY) {
@@ -109,7 +104,6 @@ const app = new Elysia()
     const { tokens } = await oauth2Client.getToken(code);
     const sessionId = crypto.randomUUID();
 
-    // 4. Simpan(tokenStore)
     tokenStore.set(sessionId, {
       access_token: tokens.access_token!,
       refresh_token: tokens.refresh_token ?? undefined,
@@ -117,28 +111,27 @@ const app = new Elysia()
 
     if (!session) return;
 
-    // 5. Setting Cookie
+    // Setting Cookie - WAJIB secure & sameSite none untuk Vercel
     session.value = sessionId;
     session.path = "/";
     session.httpOnly = true;
     session.maxAge = 60 * 60 * 24;
-    session.sameSite = "lax";
-    session.secure = process.env.NODE_ENV === "production";
+    session.sameSite = "none"; 
+    session.secure = true; 
 
-    // 6. Redirect ke Frontend dengan membawa sessionId di URL
-    return redirect(`${process.env.FRONTEND_URL}/classroom?sessionId=${sessionId}`);
+    // Redirect ke Frontend 
+    return redirect(`${process.env.FRONTEND_URL}/classroom}`);
   })
 
   .get("/auth/me", ({ cookie: { session } }) => {
-    const sessionId = session?.value as string;
+  const sessionId = session?.value as string;
 
-    if (!sessionId || !tokenStore.has(sessionId)) {
-      return { loggedIn: false };
-    }
-
-    return { loggedIn: true, sessionId };
+  if (!sessionId || !tokenStore.has(sessionId)) {
+    return { loggedIn: false };
+  }
+  return { loggedIn: true };
   })
-
+  
   .post("/auth/logout", ({ cookie: { session } }) => {
     if (!session) return { success: false };
 
@@ -222,8 +215,9 @@ if (process.env.NODE_ENV !== "production") {
   app.listen(3000);
 
   console.log(`🦊 Backend → http://localhost:3000`);
-  console.log(`🦊 TEST_URL: ${process.env.TEST_URL}`);
+  console.log(`🦊 FRONTEND_URL: ${process.env.FRONTEND_URL}`);
   console.log(`🦊 DATABASE_URL: ${process.env.DATABASE_URL}`);
+  console.log(`🦊 GOOGLE_REDIRECT_URI: ${process.env.GOOGLE_REDIRECT_URI}`); 
 }
 
 export type App = typeof app;
