@@ -120,7 +120,7 @@ const app = new Elysia()
     session.secure = true; 
 
     // Redirect ke Frontend 
-    return redirect(`${process.env.FRONTEND_URL}/classroom}`);
+    return redirect(`${process.env.FRONTEND_URL}/classroom`);
   })
 
   .get("/auth/me", ({ cookie: { session } }) => {
@@ -131,11 +131,11 @@ const app = new Elysia()
   }
   return { loggedIn: true };
   })
-  
+
   .post("/auth/logout", ({ cookie: { session } }) => {
     if (!session) return { success: false };
 
-    const sessionId = session.value as string;
+    const sessionId = session?.value as string;
 
     if (sessionId) {
       tokenStore.delete(sessionId);
@@ -147,7 +147,7 @@ const app = new Elysia()
 
   // ===== CLASSROOM =====
   .get("/classroom/courses", async ({ query, cookie: { session }, set }) => {
-    const sessionId = (query.sessionId as string) || (session?.value as string);
+    const sessionId = session?.value as string;
     const tokens = sessionId ? tokenStore.get(sessionId) : null;
 
     if (!tokens) {
@@ -162,7 +162,7 @@ const app = new Elysia()
   .get(
     "/classroom/courses/:courseId/submissions",
     async ({ params, query, cookie: { session }, set }) => {
-      const sessionId = (query.sessionId as string) || (session?.value as string);
+      const sessionId = session?.value as string;
       const tokens = sessionId ? tokenStore.get(sessionId) : null;
 
       if (!tokens) {
